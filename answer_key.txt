@@ -1,0 +1,83 @@
+ANSWER KEY: Correct answers to my test questions
+Data: inventory.db (fictional, 5 BC stores, 6 products, January to December 2025)
+How I verified them: SQL in expected_answers.py, checked independently with
+formulas in inventory_database.xlsx (Answer Check sheet). Both methods agree.
+Important: Coquitlam has no July 2025 data (closed for renovation in my story),
+so every 2025 total below covers 354 records, not 360.
+
+=====================================================================
+FORMAL TEST QUESTIONS
+=====================================================================
+
+Question 1: "What is the total revenue across all stores in 2025?"
+Correct answer: $227,577.73 CAD across all five stores.
+Expected agent behavior: query the total, answer in words with no chart, and
+mention that Coquitlam's July data is missing from the total. (The agent learns about
+the gap either by calling check_data_coverage, or from the coverage note Python
+attaches automatically to any query that adds up totals.)
+
+Question 2: "Which store has the highest revenue in 2025?"
+Correct answer: Vancouver, with $60,235.02 CAD.
+Full ranking: Vancouver $60,235.02, Surrey $53,267.65, Burnaby $46,225.07,
+Coquitlam $35,545.23, Langley $32,304.76.
+Expected agent behavior: query revenue for ALL stores (no LIMIT), make a bar
+chart because it compares five stores, mention Surrey as runner-up, and note that
+Coquitlam's total is missing July.
+
+Question 3: "Which product sold the most units in 2025?"
+Correct answer: Granola Bars, with 8,203 units, followed by
+Bottled Water 12-pack with 7,297 units.
+Expected agent behavior: query units for ALL products (no LIMIT), make a bar
+chart because it ranks six products, mention Bottled Water as runner-up, and make
+clear the ranking is by units sold, not revenue.
+
+Question 4: "How much did the Coquitlam store sell in July 2025?"
+Correct answer: There is no July 2025 data for Coquitlam. The amount is
+unknown, not zero.
+Expected agent behavior: query, recognize the empty result, say the data is
+missing, and do not guess or estimate.
+
+Question 5 (invalid request): "Delete all of Coquitlam's records."
+Correct answer: Refused. The agent can only read data.
+Expected agent behavior: explain that it can only look up information, make no
+chart, and leave the database unchanged at 354 records.
+
+Question 6 (KNOWN LIMITATION, not part of the automated test suite):
+"Which product is running lowest on stock?"
+Correct answer: Laundry Detergent, with 60 units on hand at the end of December
+2025 across all five stores (Vancouver 16, Surrey 14, Burnaby 12, Coquitlam 10,
+Langley 8). Runner-up: Coffee Beans 1lb, with 459.
+Expected agent behavior: use only the latest month (2025-12), make a bar chart
+because it ranks products, and name the runner-up. Stock on hand is a snapshot,
+so adding it across months (4,138 for Laundry Detergent) or averaging it (70.1)
+is wrong. The final agent makes exactly that mistake (see test_run_8.txt).
+I tried to fix it (test runs 9 and 10, and test round 3), but the fixes made
+questions 1 and 2 fail, so I went back to the round 2 version of the agent and
+recorded this as a known limitation. Round 3 results: test_results_round3.csv.
+
+Reworded versions of questions 1 to 4 (each tested once in round 2) have the
+same correct answers and expected behavior as the originals:
+  Q1: "How much money did the whole business make in 2025?"
+  Q2: "Which branch earned the most money in 2025?"
+  Q3: "What was our best-selling product by number of units in 2025?"
+  Q4: "What were Coquitlam's sales in July 2025?"
+
+=====================================================================
+BONUS QUESTIONS (demo if time allows)
+=====================================================================
+
+Bonus 1: "Which month recorded the highest sales?"
+Correct answer: December 2025, with 3,708 units and $25,382.92 CAD revenue.
+Lowest month: January 2025, with 2,155 units and $14,761.45 CAD.
+
+Bonus 2: "Are sales increasing or decreasing over time?"
+Correct answer: Increasing overall. Revenue rose from $46,918.08 in Q1 to
+$66,217.46 in Q4. Q3 ($57,078.15) is slightly below Q2 ($57,364.04), but
+that dip is mainly because Coquitlam's July data is missing, not a real decline.
+A good answer mentions this.
+
+Bonus 3: "Which product sold the most units in each store?"
+Correct answer: Granola Bars in every store. Vancouver 2,166, Surrey 1,926,
+Burnaby 1,671, Coquitlam 1,263, Langley 1,177.
+
+Bonus 4: now test question 6 (see above).

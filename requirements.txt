@@ -1,0 +1,7 @@
+# Python packages this project needs, installed with: pip install -r requirements.txt
+# Anaconda already includes pandas and matplotlib, so on Anaconda only ollama is new.
+# sqlite3, json, re, os, csv, time, random, and datetime come with Python itself.
+# The Ollama app and the qwen2.5:7b model are installed separately (see README.md).
+pandas
+matplotlib
+ollama>=0.6
