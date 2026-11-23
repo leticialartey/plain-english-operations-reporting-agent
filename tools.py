@@ -53,7 +53,7 @@ def run_query(sql):
         "row_count": len(rows),
     }
 
-    # I am attaching notes that guide the model's next step, based on what actually came back.
+    # I am attaching notes that guide the model's next step, based on what came back.
     # I added most of these after my second test run, when the model ignored the rules
     # in its instructions but still paid attention to the tool results.
     notes = []
@@ -94,7 +94,7 @@ def run_query(sql):
 
 # Tool 2: make_chart
 def make_chart(title, labels, values, y_label):
-    # I am checking the inputs first, because the model might send something unusable
+    # checking the inputs first, because the model might send something unusable
     if not labels or not values or len(labels) != len(values):
         return {"status": "error",
                 "error": "labels and values must be non-empty lists of the same length."}
@@ -103,10 +103,10 @@ def make_chart(title, labels, values, y_label):
     except (TypeError, ValueError):
         return {"status": "error", "error": "All values must be numbers."}
 
-    # I am creating the charts folder if it doesn't exist yet
+    #  creating the charts folder if it doesn't exist yet
     os.makedirs(CHART_FOLDER, exist_ok=True)
 
-    # I am drawing a simple bar chart with the value written on top of each bar
+    # this is drawing a simple bar chart with the value written on top of each bar
     figure, axes = plt.subplots(figsize=(8, 5))
     bars = axes.bar([str(label) for label in labels], values, color="#1F4E79")
     axes.set_title(title)
@@ -116,7 +116,7 @@ def make_chart(title, labels, values, y_label):
     plt.xticks(rotation=20, ha="right")
     plt.tight_layout()
 
-    # I am naming each chart with the date and time so no chart overwrites another
+    # naming each chart with the date and time so no chart overwrites another
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     file_path = os.path.join(CHART_FOLDER, f"chart_{timestamp}.png")
     figure.savefig(file_path, dpi=150)
@@ -148,7 +148,7 @@ def check_data_coverage():
     except Exception as problem:
         return {"status": "error", "error": str(problem)}
 
-    # I am comparing each store's months against the full year to find any gaps
+    # comparing each store's months against the full year to find any gaps
     gaps = []
     months_per_store = {}
     for store, months in months_by_store.items():

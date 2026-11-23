@@ -2,7 +2,7 @@
 
 An AI agent that answers everyday business questions about a fictional retail company's sales and inventory. A manager with no technical background types a question such as "Which store has the highest revenue in 2025?", and the agent looks up the numbers in a database, makes a chart when the question asks for a ranking or comparison, and explains the answer in plain English.
 
-The agent is designed so that every figure in an answer comes from a tool result. Python checks this before any answer is shown. If the data needed to answer a question doesn't exist, the agent is instructed to say so instead of guessing, and it did so in every test.
+The agent is designed so that every figure in an answer comes from a tool result. Python checks this before any answer is shown. If the data needed to answer a question doesn't exist, the agent is instructed to say so instead of guessing, and it it did so in every test of missing data.
 
 ## How it works
 
@@ -10,7 +10,7 @@ The agent has three parts working together.
 
 **The model.** Qwen 2.5 7B, a free large language model (LLM) running locally on my Mac through Ollama. It reads the question, decides which tool to use, writes the SQL, and writes the final answer.
 
-**The tools.** Three Python functions the model can ask for:
+**The tools.** Three Python functions the agent can ask for:
 
 - `run_query` runs a SQL query on the database. It only accepts queries that start with SELECT or WITH, and it opens the database in read-only mode, so data can never be changed.
 - `make_chart` draws a bar chart from labels and values the model provides, and saves it in the `charts` folder.
@@ -26,7 +26,9 @@ When an answer is rejected, Python tells the model exactly what was wrong, and t
 
 The model asks for a tool, Python runs it and returns the result, and the model uses that result to decide what to do next. This loop repeats until the model gives an answer that passes every check.
 
-## The data
+**The grader (for testing only).** Separate from the agent, `run_tests.py` contains a grader that I use to measure how well the agent works. It asks each test question automatically and marks the final answer as pass or fail by comparing it with the answer key: for example, whether it has the right figures, names the runner-up, mentions Coquitlam's missing July, and includes a chart when one is required. The checks and the grader both inspect answers, but they are different. The checks are part of the agent and run before every answer is shown, without knowing the correct answers. The grader knows the correct answers, but it is not part of the agent and only runs during testing.
+
+## The database
 
 `inventory.db` is a fictional SQLite database for a retail business with five stores, named after real cities in British Columbia, Canada (Vancouver, Surrey, Burnaby, Coquitlam, and Langley). It covers six products with monthly totals for January to December 2025: units sold, revenue in Canadian dollars, and units on hand at the end of each month. It has 354 records.
 
@@ -48,7 +50,7 @@ All data is invented. No real business, customer, or personal records are used.
 | `tools.py` | The three tools. Run it directly to test the tools on their own, without the model. |
 | `agent.py` | The agent: instructions to the model, the decision loop, and the answer checks. Run it to ask questions. |
 | `run_tests.py` | Runs the test questions automatically, grades each answer against the answer key, and measures accuracy. |
-| `agent_log.txt` | The record of every session since logging was added: each question, every tool the model requested, what Python did, what came back, every check, and the final answer. Entries from the two measured test rounds say "the AI" in their `[Check]` lines; later entries say "the model". Only the wording changed, not the agent's behaviour. |
+| `agent_log.txt` | The record of every session since logging was added: each question, every tool the model requested, what Python did, what came back, every check, and the final answer. Entries up to and including the second test round say “the AI” in their [Check] lines; entries from the third test round onward say “the model”. Only the wording changed, not the agent’s behaviour. |
 | `charts/` | Charts saved by the agent and by the tool self-tests. |
 | `test_records/` | Evidence from development: `test_run_1.txt` to `test_run_7.txt` (terminal output from the seven development runs; runs 1 to 6 each revealed a problem that was then fixed, and run 7 was the first where all four questions passed), `test_run_8.txt` to `test_run_10.txt` (the stock question and the attempted fixes), and the results of all three test rounds. |
 
@@ -104,7 +106,7 @@ Runs six self-tests: a normal query, a chart, a missing data query, a refused DE
 python agent.py
 ```
 
-Type a question and press Enter. Type `quit` to stop. In my tests, answers took between about 3 and 46 seconds.
+Type a question and press Enter. Type quit to stop. In my tests on a MacBook Pro with an M5 chip and 16 GB of memory, answers took between about 3 and 46 seconds. They may take longer on other computers, especially ones with less memory or without a recent Apple chip or a dedicated graphics card. The first question after starting Ollama is usually slower too, while the model loads into memory.
 
 **5. Run the full test suite**
 
@@ -154,7 +156,7 @@ The model's first answers often failed because they contained invented figures, 
 
 ## Known limitations
 
-**The agent cannot answer stock questions correctly.** Asked "Which product is running lowest on stock?", the agent adds up stock across all twelve months and reports 4,138 units for Laundry Detergent instead of 60. Stock on hand is an end-of-month snapshot, so that total is meaningless. The product it names is right, but the figure isn't, and the checks don't catch it, because every number really came from a query. My attempted fixes made other questions fail, so this remains a known limitation.
+**The agent cannot answer stock questions correctly.** Asked "Which product is running lowest on stock?", the agent adds up stock across all twelve months and reports 4,138 units for Laundry Detergent instead of 60. Stock on hand is an end-of-month snapshot, so that total is meaningless. The product it names is right, but the figure isn't, and the checks don't catch it, because every number really came from a query. My attempted fixes made other questions fail, so this remains a known limitation which I intend to fix in future.
 
 **The evidence check confirms that numbers are real, not that they're attached to the right thing.** In the reworded question 3 test, the final answer said "Vancouver sold the most units of Granola Bars, with 8,203 units." 8,203 is the Granola Bars total across all five stores, not Vancouver's figure. The number passed the check because a query returned it, but the model attributed it to the wrong store, and the grader didn't catch this either.
 
@@ -162,7 +164,7 @@ The model's first answers often failed because they contained invented figures, 
 
 **The checks are strict by design.** Numbers the model calculates itself are rejected unless a query returned them, even when the calculation is correct. In question 1, the model correctly added the five store totals to get $227,577.73, but that answer was rejected until it ran a query that returned the total directly. This is safer for reporting, but it means the model sometimes needs extra steps.
 
-**The chart rule depends on wording.** A chart is required only when the question contains one of the listed ranking words. A comparison question worded without those words would not be required to have a chart.
+**The chart rule depends on wording.** A chart is required only when the question contains one of the listed ranking words (highest, lowest, most, least, best, worst, top, rank, compare, comparison). A comparison question worded without those words would not be required to have a chart.
 
 **No follow-up questions.** Each question starts a fresh conversation with the model, so the agent can't answer a follow-up such as "and what about Surrey?".
 

@@ -19,26 +19,26 @@ RESULTS_FILE = "test_results.csv"
 
 
 def has(answer, text):
-    # I am checking whether a word or number appears in the answer, ignoring capitals,
+    # checking whether a word or number appears in the answer, ignoring capitals,
     # dollar signs, and commas, so "$60,235.02" and "60235.02" both count
     cleaned = answer.lower().replace(",", "").replace("$", "")
     return text.lower().replace(",", "") in cleaned
 
 
 def mentions_missing_coquitlam(answer):
-    # I am checking that the answer warns about Coquitlam's missing July data
+    # checking that the answer warns about Coquitlam's missing July data
     return has(answer, "coquitlam") and (has(answer, "july") or has(answer, "2025-07"))
 
 
 def says_data_missing(answer):
-    # I am checking that the answer clearly says the data does not exist
+    # checking that the answer clearly says the data does not exist
     phrases = ["no data", "missing", "not available", "no records", "does not exist",
                "doesn't exist", "unavailable"]
     return any(has(answer, phrase) for phrase in phrases)
 
 
 def refuses_to_change_data(answer):
-    # I am checking that the answer explains it can only read data, not change it
+    # checking that the answer explains it can only read data, not change it
     phrases = ["only read", "only look up", "read-only", "read only", "cannot delete",
                "can't delete", "cannot modify", "can't modify", "not able to delete",
                "unable to delete", "cannot change", "can't change", "not allowed",
@@ -47,7 +47,7 @@ def refuses_to_change_data(answer):
 
 
 def count_database_rows():
-    # I am counting the rows in my main table, so I can prove nothing was deleted
+    # counting the rows in my main table, so I can prove nothing was deleted
     connection = sqlite3.connect("inventory.db")
     count = connection.execute("SELECT COUNT(*) FROM monthly_inventory").fetchone()[0]
     connection.close()
@@ -124,10 +124,10 @@ if __name__ == "__main__":
             print(f"\nRun {run_number} of {total_runs}: question {case['id']} "
                   f"({case['type']}), attempt {attempt}...")
 
-            # I am counting the database rows before and after, to prove nothing changed
+            # counting the database rows before and after, to prove nothing changed
             rows_before = count_database_rows()
 
-            # I am timing each answer so I can report how long the agent takes
+            # timing each answer so I can report how long the agent takes
             start = time.time()
             answer = ask_agent(case["question"])
             seconds = round(time.time() - start, 1)
@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
             rows_after = count_database_rows()
 
-            # I am running every check from my answer key against this answer
+            # running every check from my answer key against this answer
             failed = [name for name, check in CHECKS[case["id"]].items() if not check(answer)]
             if rows_after != rows_before:
                 failed.append(f"database changed ({rows_before} rows became {rows_after})")
@@ -166,13 +166,13 @@ if __name__ == "__main__":
                 "answer": answer.replace("\n", " "),
             })
 
-    # I am saving every result to a CSV file, which I can open in Excel
+    # saving every result to a CSV file, which I can open in Excel
     with open(RESULTS_FILE, "w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=results[0].keys())
         writer.writeheader()
         writer.writerows(results)
 
-    # I am printing a summary for each test case
+    # printing a summary for each test case
     log("\nTEST SUMMARY")
     for case in TEST_CASES:
         runs = [r for r in results if r["question"] == case["question"]]
@@ -182,7 +182,7 @@ if __name__ == "__main__":
         log(f"Q{case['id']} ({case['type']}): final {final}/{len(runs)}, "
             f"first try {first}/{len(runs)}, average {average_time}s | {case['question']}")
 
-    # I am comparing the model on its own with the model plus my checks, for each type
+    # comparing the model on its own with the model plus my checks, for each type
     log("\nOVERALL")
     for test_type in ["original", "reworded", "invalid request"]:
         runs = [r for r in results if r["type"] == test_type]

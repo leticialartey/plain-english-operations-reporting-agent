@@ -7,7 +7,7 @@
 import sqlite3
 import pandas as pd
 
-# I am connecting to the database I built in create_inventory_database.py
+# connecting to the database I built in create_inventory_database.py
 connection = sqlite3.connect("inventory.db")
 
 
@@ -25,7 +25,7 @@ def show_answer(title, sql):
 # My formal test questions
 
 # Test Question 1: "What is the total revenue across all stores in 2025?"
-# I am adding up every revenue value in the table to get one business-wide total.
+# adding up every revenue value in the table to get one business-wide total.
 show_answer("Test Question 1: Total revenue across all stores in 2025 (CAD)",
     """
     SELECT ROUND(SUM(revenue), 2) AS total_revenue
@@ -34,7 +34,7 @@ show_answer("Test Question 1: Total revenue across all stores in 2025 (CAD)",
     """)
 
 # Test Question 2: "Which store has the highest revenue in 2025?"
-# I am totaling revenue for each store and sorting from highest to lowest.
+# totaling revenue for each store and sorting from highest to lowest.
 show_answer("Test Question 2: Revenue by store in 2025 (CAD)",
     """
     SELECT l.store_name, ROUND(SUM(m.revenue), 2) AS total_revenue
@@ -46,7 +46,7 @@ show_answer("Test Question 2: Revenue by store in 2025 (CAD)",
     """)
 
 # Test Question 3: "Which product sold the most units in 2025?"
-# I am totaling units sold for each product across all stores.
+# totaling units sold for each product across all stores.
 show_answer("Test Question 3: Units sold by product in 2025",
     """
     SELECT p.product_name, SUM(m.units_sold) AS total_units_sold
@@ -78,10 +78,10 @@ show_answer("Test Question 4 (total): Coquitlam's July 2025 totals",
     """)
 
 
-# My bonus questions (for the demo if time allows)
+# My bonus questions
 
 # Bonus 1: "Which month recorded the highest sales?"
-# I am totaling revenue and units for each month across all stores.
+# totaling revenue and units for each month across all stores.
 show_answer("Bonus 1: Sales by month in 2025",
     """
     SELECT month, SUM(units_sold) AS total_units_sold,
@@ -93,7 +93,7 @@ show_answer("Bonus 1: Sales by month in 2025",
     """)
 
 # Bonus 2: "Are sales increasing or decreasing over time?"
-# I am comparing each quarter, because a quarter smooths out single-month bumps.
+# comparing each quarter, because a quarter smooths out single-month bumps.
 show_answer("Bonus 2: Revenue by quarter in 2025 (CAD)",
     """
     SELECT CASE
@@ -110,7 +110,7 @@ show_answer("Bonus 2: Revenue by quarter in 2025 (CAD)",
     """)
 
 # Bonus 3: "Which product sold the most units in each store?"
-# I am totaling units per store and product, then keeping only each store's top product.
+# totaling units per store and product, then keeping only each store's top product.
 show_answer("Bonus 3: Top-selling product in each store (units, 2025)",
     """
     WITH store_product AS (
@@ -130,7 +130,7 @@ show_answer("Bonus 3: Top-selling product in each store (units, 2025)",
     """)
 
 # Bonus 4: "Which product is running lowest on stock?"
-# I am looking at the most recent month (December 2025) across all stores.
+# looking at the most recent month (December 2025) across all stores.
 show_answer("Bonus 4: Stock on hand by product, end of December 2025",
     """
     SELECT p.product_name, SUM(m.units_on_hand) AS total_on_hand

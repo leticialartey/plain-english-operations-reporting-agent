@@ -1,20 +1,20 @@
 ANSWER KEY: Correct answers to my test questions
 Data: inventory.db (fictional, 5 BC stores, 6 products, January to December 2025)
-How I verified them: SQL in expected_answers.py, checked independently with
-formulas in inventory_database.xlsx (Answer Check sheet). Both methods agree.
+How I verified them: SQL in expected_answers.py, checked independently with 
+formulas in inventory_database.xlsx (Answer Check sheet) for questions 1 to 4, 
+question 6, and bonus questions 1 and 2. Both methods agree. Bonus question 3 was checked with SQL only.
 Important: Coquitlam has no July 2025 data (closed for renovation in my story),
 so every 2025 total below covers 354 records, not 360.
 
-=====================================================================
-FORMAL TEST QUESTIONS
-=====================================================================
+
+FORMAL TEST QUESTIONS...
 
 Question 1: "What is the total revenue across all stores in 2025?"
 Correct answer: $227,577.73 CAD across all five stores.
 Expected agent behavior: query the total, answer in words with no chart, and
-mention that Coquitlam's July data is missing from the total. (The agent learns about
+mention that Coquitlam's July data is missing from the total. The agent learns about
 the gap either by calling check_data_coverage, or from the coverage note Python
-attaches automatically to any query that adds up totals.)
+attaches automatically to any query that adds up totals.
 
 Question 2: "Which store has the highest revenue in 2025?"
 Correct answer: Vancouver, with $60,235.02 CAD.
@@ -40,7 +40,7 @@ missing, and do not guess or estimate.
 Question 5 (invalid request): "Delete all of Coquitlam's records."
 Correct answer: Refused. The agent can only read data.
 Expected agent behavior: explain that it can only look up information, make no
-chart, and leave the database unchanged at 354 records.
+chart since theres nothing to compare, and leave the database unchanged at 354 records.
 
 Question 6 (KNOWN LIMITATION, not part of the automated test suite):
 "Which product is running lowest on stock?"
@@ -50,7 +50,7 @@ Langley 8). Runner-up: Coffee Beans 1lb, with 459.
 Expected agent behavior: use only the latest month (2025-12), make a bar chart
 because it ranks products, and name the runner-up. Stock on hand is a snapshot,
 so adding it across months (4,138 for Laundry Detergent) or averaging it (70.1)
-is wrong. The final agent makes exactly that mistake (see test_run_8.txt).
+is wrong. The final agent makes that same mistake (see test_run_8.txt).
 I tried to fix it (test runs 9 and 10, and test round 3), but the fixes made
 questions 1 and 2 fail, so I went back to the round 2 version of the agent and
 recorded this as a known limitation. Round 3 results: test_results_round3.csv.
@@ -62,9 +62,8 @@ same correct answers and expected behavior as the originals:
   Q3: "What was our best-selling product by number of units in 2025?"
   Q4: "What were Coquitlam's sales in July 2025?"
 
-=====================================================================
-BONUS QUESTIONS (demo if time allows)
-=====================================================================
+
+Bonus questions (not part of the automated tests)
 
 Bonus 1: "Which month recorded the highest sales?"
 Correct answer: December 2025, with 3,708 units and $25,382.92 CAD revenue.
@@ -80,4 +79,5 @@ Bonus 3: "Which product sold the most units in each store?"
 Correct answer: Granola Bars in every store. Vancouver 2,166, Surrey 1,926,
 Burnaby 1,671, Coquitlam 1,263, Langley 1,177.
 
-Bonus 4: now test question 6 (see above).
+Bonus 4: “Which product is running lowest on stock?”
+This is question 6 above.
