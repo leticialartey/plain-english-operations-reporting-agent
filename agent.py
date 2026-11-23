@@ -1,8 +1,9 @@
 # agent.py
-# In this file, I am building my Plain-English Operations Reporting Agent.
+# In this file, I am building a Plain-English Operations Reporting Agent.
 # A user types a question, my local AI model (Qwen 2.5 through Ollama) decides
 # which tool to use, my Python code runs that tool, and the model uses the results
 # to decide what to do next, until it can give a plain-language answer.
+# Before the user sees that answer, I check that every number in it came from a tool.
 
 import json
 import re
@@ -23,7 +24,7 @@ LAST_RUN_STATS = {}
 
 
 def log(text=""):
-    # I am showing each line on screen and also saving it to my log file,
+    # showing each line on screen and also saving it to my log file,
     # so I have a permanent record of everything the agent did
     print(text)
     with open(LOG_FILE, "a", encoding="utf-8") as file:
@@ -31,7 +32,7 @@ def log(text=""):
 
 
 def describe_action(tool_name, result):
-    # I am writing a plain description of what Python actually did for each tool request,
+    # writing a plain description of what Python actually did for each tool request,
     # which is the "actions Python executed" part of my record
     status = result.get("status")
     if tool_name == "run_query":
@@ -52,7 +53,7 @@ def describe_action(tool_name, result):
 
 
 # My instructions to the model.
-# I am describing my database exactly, so the model writes correct SQL,
+# describing my database, so the model writes correct SQL,
 # and I am setting clear rules so it never invents numbers.
 SYSTEM_PROMPT = """
 You are a reporting assistant for a small retail business with five stores in
@@ -173,7 +174,7 @@ TOOL_DESCRIPTIONS = [
 ]
 
 
-# I am connecting each tool name the model might ask for to my real Python function
+# connecting each tool name the model might ask for to my real Python function
 AVAILABLE_TOOLS = {
     "run_query": run_query,
     "make_chart": make_chart,
@@ -193,7 +194,7 @@ def fix_list(value):
 
 
 def collect_numbers(value, found):
-    # I am digging through a tool result and collecting every number in it,
+    # digging through a tool result and collecting every number in it,
     # so I can later check the model's answer against real figures
     if isinstance(value, bool):
         return
@@ -209,7 +210,7 @@ def collect_numbers(value, found):
 
 def check_chart_inputs(arguments, query_numbers, query_text):
     # After my sixth test run, the model drew a chart with invented values even though
-    # its written answer was correct. Now I am checking the chart's data before drawing it.
+    # its written answer was correct. So this is my check of the chart's data before drawing it.
     problems = []
     for value in arguments.get("values") or []:
         try:
@@ -233,7 +234,7 @@ def find_unsupported_numbers(answer, tool_numbers):
     for text in re.findall(r"\d[\d,]*(?:\.\d+)?", answer):
         number = float(text.replace(",", ""))
 
-        # I am skipping small whole numbers and the year, because they are usually
+        # skipping small whole numbers and the year, because they are usually
         # months, counts, or product names (like "12-pack"), not data figures
         if (number <= 12 and number.is_integer()) or number == 2025:
             continue
@@ -269,8 +270,8 @@ def is_ranking_question(question):
 
 def promised_without_doing(answer):
     # I am catching answers where the model says it will do something
-    # (like run a query or make a chart) but never actually called the tool,
-    # (I check for fake images separately in remove_images)
+    # like run a query or make a chart but never actually called the tool,
+    # I check for fake images separately in remove_images
     # After my fourth test run, I added "I can", "I could", and "let me", because the model
     # started offering to do the work ("I can run the query again") instead of doing it
     promise = re.search(r"\b(?:I(?:'ll| will| am going to| can| could)|let me)\s+"
@@ -284,13 +285,13 @@ def ask_agent(question):
     # I am recording the question and the time, so each entry in my log is easy to find
     log(f"\nQUESTION ({datetime.now().strftime('%Y-%m-%d %H:%M:%S')}): {question}")
 
-    # I am starting the conversation with my instructions and the user's question
+    # starting the conversation with my instructions and the user's question
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": question},
     ]
 
-    # I am resetting my scorecard for this new question
+    # resetting my scorecard for this new question
     LAST_RUN_STATS.clear()
     LAST_RUN_STATS.update({"first_try_accepted": None, "rejections": 0,
                            "chart_refusals": 0, "tool_calls": 0, "blocked": False})
@@ -303,7 +304,7 @@ def ask_agent(question):
     needs_chart = is_ranking_question(question)
 
     for step in range(1, MAX_STEPS + 1):
-        # I am sending the whole conversation so far to the model.
+        # sending the whole conversation so far to the model.
         # Temperature 0 makes its answers as consistent as possible between runs.
         response = ollama.chat(
             model=MODEL,
@@ -325,18 +326,18 @@ def ask_agent(question):
 
             passed_checks = not (unsupported or promised or fake_image or missing_chart)
 
-            # I am recording whether the model's very first answer passed, for my scorecard
+            # recording whether the model's very first answer passed, for my scorecard
             if LAST_RUN_STATS["first_try_accepted"] is None:
                 LAST_RUN_STATS["first_try_accepted"] = passed_checks
 
             if passed_checks:
                 log("\n[Check] Every number in the answer matches a tool result. Answer accepted.")
-                # I am adding the real chart location myself, so the user knows where to find it
+                # adding the real chart location myself, so the user knows where to find it
                 if chart_files:
                     answer += f"\n\nChart saved: {chart_files[-1]}"
                 return answer
 
-            # I am printing the rejected answer, so I can see exactly what went wrong
+            # printing the rejected answer, so I can see what went wrong
             log("\n[Check] The model tried to answer with:")
             log("        " + answer.replace("\n", "\n        "))
 
@@ -345,14 +346,14 @@ def ask_agent(question):
             if corrections > MAX_CORRECTIONS:
                 LAST_RUN_STATS["blocked"] = True
                 # The model kept failing my checks without making progress, so I am blocking
-                # the answer rather than showing the user numbers that might be invented
+                # the answer so it does not show the user numbers that might be invented
                 log(f"\n[Check] The answer failed {corrections} times in a row with no "
                       "new tool calls. Answer blocked.")
                 return ("I wasn't able to produce an answer that is fully supported by "
                         "the data, so I'm not showing one. Please try asking the "
                         "question in a simpler way.")
 
-            # I am telling the model exactly what was wrong so it can fix its answer
+            # telling the model exactly what was wrong so it can fix its answer
             problems = []
             if unsupported:
                 problems.append("These numbers in your answer did not come from any tool "
@@ -377,7 +378,7 @@ def ask_agent(question):
         # so I am resetting its count of failed answers in a row
         corrections = 0
 
-        # I am running every tool the model asked for, one at a time
+        # running every tool the model asked for, one at a time
         for call in reply.tool_calls:
             tool_name = call.function.name
             arguments = call.function.arguments or {}
@@ -389,7 +390,7 @@ def ask_agent(question):
             log(f"           Inputs: {arguments}")
 
             if tool_name not in AVAILABLE_TOOLS:
-                # I am telling the model it asked for a tool that doesn't exist
+                # telling the model it asked for a tool that doesn't exist
                 result = {"status": "error",
                           "error": f"There is no tool called '{tool_name}'."}
             else:
@@ -400,7 +401,7 @@ def ask_agent(question):
                     chart_problems = check_chart_inputs(arguments, query_numbers, query_text)
 
                 if chart_problems:
-                    # I am refusing to draw a chart that contains data no query returned
+                    # refusing to draw a chart that contains data no query returned
                     LAST_RUN_STATS["chart_refusals"] += 1
                     log(f"\n[Check] Chart refused. These did not come from any query result: "
                           f"{', '.join(chart_problems)}")
@@ -413,15 +414,15 @@ def ask_agent(question):
                     try:
                         result = AVAILABLE_TOOLS[tool_name](**arguments)
                     except TypeError as problem:
-                        # I am catching wrong or missing inputs so the model can try again
+                        # catching wrong or missing inputs so the model can try again
                         result = {"status": "error", "error": f"Wrong inputs: {problem}"}
 
             # Parts 2 and 3 of my record: what Python did, and what came back
             log(f"           PYTHON DID: {describe_action(tool_name, result)}")
             log(f"           RESULT RETURNED: {result}")
 
-            # I am remembering every number the tools returned, for my evidence check,
-            # and every chart that was actually saved
+            # remembering every number the tools returned, for my evidence check,
+            # and every chart that was saved
             collect_numbers(result, tool_numbers)
             if tool_name == "run_query" and result.get("status") == "ok":
                 collect_numbers(result.get("rows"), query_numbers)
@@ -429,7 +430,7 @@ def ask_agent(question):
             if tool_name == "make_chart" and result.get("status") == "ok":
                 chart_files.append(result["chart_file"])
 
-            # I am sending the tool's result back to the model so it can decide what to do next
+            # sending the tool's result back to the model so it can decide what to do next
             messages.append({
                 "role": "tool",
                 "content": json.dumps(result),

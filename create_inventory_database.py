@@ -3,28 +3,28 @@
 # It holds monthly sales, revenue, and stock levels for five stores in BC, Canada,
 # for every month from January to December 2025.
 # I designed it so I can run it as many times as I like, and each run starts fresh
-# and produces exactly the same data.
+# and produces the same data.
 
 import sqlite3
 import random
 
 DB_FILE = "inventory.db"
 
-# I am fixing the random seed so my "random" variation comes out identical every run.
+# fixing the random seed so my "random" variation comes out identical every run.
 # This keeps my answer key valid no matter how many times I rebuild the database.
 random.seed(2025)
 
 connection = sqlite3.connect(DB_FILE)
 cursor = connection.cursor()
 
-# I am dropping my tables first if they already exist, so every run starts clean
+# dropping my tables first if they already exist, so every run starts clean
 cursor.execute("DROP TABLE IF EXISTS monthly_inventory")
 cursor.execute("DROP TABLE IF EXISTS products")
 cursor.execute("DROP TABLE IF EXISTS locations")
 
 # Step 1: Creating the three tables
 
-# I am creating a table to hold my five stores
+# creating a table to hold my five stores
 cursor.execute("""
     CREATE TABLE locations (
         location_id INTEGER PRIMARY KEY,
@@ -33,7 +33,7 @@ cursor.execute("""
     )
 """)
 
-# I am creating a table to hold my six products and their prices (in Canadian dollars)
+# creating a table to hold my six products and their prices in Canadian dollars
 cursor.execute("""
     CREATE TABLE products (
         product_id   INTEGER PRIMARY KEY,
@@ -43,7 +43,7 @@ cursor.execute("""
     )
 """)
 
-# I am creating the main table, which records sales, revenue, and stock
+# creating the main table, which records sales, revenue, and stock
 # for every store, product, and month
 cursor.execute("""
     CREATE TABLE monthly_inventory (
@@ -60,7 +60,7 @@ cursor.execute("""
 
 # Step 2: Adding my stores and products
 
-# I invented five stores across the Lower Mainland in BC.
+# I invented five stores across the Lower Mainland in BC, where I live.
 # I gave each store a "size" so they don't all sell the same amount.
 # A size of 1.30 means that store sells 30% more than an average store.
 stores = [
@@ -114,7 +114,7 @@ for location_id, store_name, province, size in stores:
 
         for product_id, product_name, category, unit_price, typical_units in products:
             # I am adding a small random variation (up to 6% up or down)
-            # so the numbers look realistic instead of perfectly smooth
+            # so the numbers look a bit realistic
             variation = random.uniform(0.94, 1.06)
 
             units_sold = round(typical_units * size * seasonal_factor[month] * growth * variation)
@@ -132,7 +132,7 @@ for location_id, store_name, province, size in stores:
 
 cursor.executemany("INSERT INTO monthly_inventory VALUES (?, ?, ?, ?, ?, ?)", rows)
 
-# I am saving everything to the database file
+# saving everything to the database file
 connection.commit()
 
 # Step 4: Printing a quick summary so I can confirm it worked
