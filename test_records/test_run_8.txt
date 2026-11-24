@@ -1,4 +1,3 @@
-(base) leticialartey@Letties-MacBook-Pro Plain_English_Reporting_Agent %  conda activate base
 (base) leticialartey@Letties-MacBook-Pro Plain_English_Reporting_Agent % python agent.py
 Plain-English Operations Reporting Agent
 
